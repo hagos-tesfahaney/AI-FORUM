@@ -50,3 +50,16 @@ export function isAuthoredByUser(question, user) {
   if (authorId == null || userId == null) return false;
   return String(authorId) === String(userId);
 }
+
+/**
+ * Gets the two-letter initials for a user.
+ * @param {string} [firstName]
+ * @param {string} [lastName]
+ * @returns {string}
+ */
+export function getInitials(firstName = '', lastName = '') {
+  const f = firstName?.trim() ? firstName.trim().charAt(0).toUpperCase() : '';
+  const l = lastName?.trim() ? lastName.trim().charAt(0).toUpperCase() : '';
+  return f + l || 'U';
+}
+

@@ -1,0 +1,145 @@
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--surface-hover);
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.card--owner {
+  border-left: 3px solid var(--primary);
+}
+
+.card__layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.card__avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: var(--text-xs);
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.card__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.card__title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.card:hover .card__title {
+  color: var(--primary-dark);
+}
+
+.card__badges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.card__yoursBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  background-color: var(--primary-light);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.card__scoreBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #4f46e5;
+  background-color: #e0e7ff;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.card__snippet {
+  margin: var(--spacing-xs) 0 var(--spacing-sm) 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.card__replies {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.card__metaIcon {
+  color: var(--text-tertiary);
+}
+
+.card__dot {
+  color: var(--border-hover);
+}
+
+.card__time {
+  color: var(--text-tertiary);
+}
+
+.card__author {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
