@@ -4,7 +4,7 @@ import { Search, LogOut, Sparkles } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 /**
- * Top bar: page title, debounced text search → `/dashboard?q=…`, optional AI semantic search.
+ * Top bar: page title, debounced text search → `/dashboard?q=…`, AI semantic search button.
  * Search state is driven by the URL on the dashboard so bookmarks and refresh keep context.
  */
 export default function Navbar({ title, subtitle, user, onLogout }) {
@@ -29,31 +29,55 @@ export default function Navbar({ title, subtitle, user, onLogout }) {
 
   // Debounced keyword search: updates `?q=` on the dashboard (500ms quiet period).
   useEffect(() => {
+    const currentParams = new URLSearchParams(location.search);
+    const hasSemantic = currentParams.has('semantic');
+    const semanticVal = currentParams.get('semantic') || '';
+    const qVal = currentParams.get('q') || '';
+    const trimmed = searchTerm.trim();
+
+    // If the URL already has semantic search matching the current input, don't overwrite with ?q=
+    if (hasSemantic && semanticVal === trimmed) {
+      return;
+    }
+
+    // If input already matches ?q= in URL, don't re-navigate
+    if (qVal === trimmed) {
+      return;
+    }
+
     const delayDebounceFn = setTimeout(() => {
-      if (searchTerm.trim() !== '') {
-        navigate(`/dashboard?q=${encodeURIComponent(searchTerm)}`);
+      const latestParams = new URLSearchParams(location.search);
+      if (latestParams.has('semantic') && latestParams.get('semantic') === trimmed) {
+        return;
+      }
+
+      if (trimmed !== '') {
+        navigate(`/dashboard?q=${encodeURIComponent(trimmed)}`);
       } else if (
         location.pathname === '/dashboard' &&
-        !new URLSearchParams(location.search).get('semantic')
+        !latestParams.get('semantic')
       ) {
         navigate('/dashboard');
       }
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, navigate, location.pathname]);
+  }, [searchTerm, navigate, location.pathname, location.search]);
 
   const handleSemanticSearch = e => {
     e.preventDefault();
     if (searchTerm.trim().length >= 3) {
-      navigate(`/dashboard?semantic=${encodeURIComponent(searchTerm)}`);
+      navigate(`/dashboard?semantic=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
   const handleSearchSubmit = e => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/dashboard?q=${encodeURIComponent(searchTerm)}`);
+    const currentParams = new URLSearchParams(location.search);
+    if (currentParams.has('semantic') && searchTerm.trim().length >= 3) {
+      navigate(`/dashboard?semantic=${encodeURIComponent(searchTerm.trim())}`);
+    } else if (searchTerm.trim()) {
+      navigate(`/dashboard?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
@@ -79,7 +103,7 @@ export default function Navbar({ title, subtitle, user, onLogout }) {
           className={styles['navbar__search-input']}
           aria-label='Search questions by keyword'
         />
-        {searchTerm.length >= 3 && (
+        {searchTerm.trim().length >= 3 && (
           <button
             type='button'
             onClick={handleSemanticSearch}

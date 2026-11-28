@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Sparkles } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { timeAgo, isAuthoredByUser, getInitials } from '../../lib/utils.js';
 import styles from './QuestionCard.module.css';
 
@@ -78,12 +78,6 @@ export default function QuestionCard({ question, currentUser }) {
           <div className={styles.card__header}>
             <h3 className={styles.card__title}>{question.title}</h3>
             <div className={styles.card__badges}>
-              {question.score !== undefined && (
-                <span className={styles.card__scoreBadge} title='Semantic similarity match'>
-                  <Sparkles size={12} />
-                  <span>{Math.round(question.score * 100)}% match</span>
-                </span>
-              )}
               {isOwner && <span className={styles.card__yoursBadge}>YOURS</span>}
             </div>
           </div>

@@ -35,7 +35,7 @@ export const generateEmbedding = async (
     throw new Error('Gemini API key is not configured.');
   }
 
-  const model = process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+  const model = process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001';
   const response = await ai.models.embedContent({
     model,
     contents: text,
@@ -43,6 +43,7 @@ export const generateEmbedding = async (
   });
 
   const values =
+    response?.embeddings?.[0]?.values ||
     response?.embedding?.values ||
     response?.values ||
     response?.embedding ||

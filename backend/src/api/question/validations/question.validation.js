@@ -50,8 +50,8 @@ export const searchQuestionsValidation = [
     .trim()
     .notEmpty()
     .withMessage('Search query is required')
-    .isLength({ min: 5 })
-    .withMessage('Query must be at least 5 characters'),
+    .isLength({ min: 3 })
+    .withMessage('Query must be at least 3 characters'),
   query('k')
     .optional()
     .isInt({ min: 1, max: 20 })

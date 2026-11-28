@@ -6,7 +6,7 @@ import { cosineSimilarity } from '../../../utils/vector.js';
 
 const DEFAULT_RECOMMEND_THRESHOLD = process.env.RECOMMEND_THRESHOLD
   ? parseFloat(process.env.RECOMMEND_THRESHOLD)
-  : 0.75;
+  : 0.7;
 const DEFAULT_RECOMMEND_K = process.env.RECOMMEND_K
   ? parseInt(process.env.RECOMMEND_K, 10)
   : 5;
@@ -254,17 +254,22 @@ export const searchQuestionsSemanticService = async ({
   k = DEFAULT_RECOMMEND_K,
   threshold = DEFAULT_RECOMMEND_THRESHOLD,
 }) => {
+  const numericK = k ? parseInt(k, 10) : DEFAULT_RECOMMEND_K;
+  const numericThreshold =
+    threshold !== undefined && threshold !== null && !isNaN(Number(threshold))
+      ? Number(threshold)
+      : DEFAULT_RECOMMEND_THRESHOLD;
+
   let queryEmbedding;
   try {
     queryEmbedding = await generateEmbedding(query, 'RETRIEVAL_QUERY');
   } catch (error) {
-    // If Gemini query embedding fails, fallback to empty or handle gracefully
     return {
       data: [],
       meta: {
         total: 0,
-        k,
-        threshold,
+        k: numericK,
+        threshold: numericThreshold,
         query,
         questionHash: null,
       },
@@ -273,7 +278,33 @@ export const searchQuestionsSemanticService = async ({
 
   const vectorsSql =
     "SELECT question_id, embedding FROM question_vectors WHERE status = 'ready'";
-  const vectorRows = await safeExecute(vectorsSql, []);
+  let vectorRows = await safeExecute(vectorsSql, []);
+
+  // If no vectors exist yet in database, generate for existing questions
+  if (vectorRows.length === 0) {
+    try {
+      const existing = await safeExecute(
+        'SELECT question_id, title FROM questions LIMIT 20',
+        [],
+      );
+      for (const item of existing) {
+        try {
+          const emb = await generateEmbedding(item.title, 'RETRIEVAL_DOCUMENT');
+          await safeExecute(
+            `INSERT INTO question_vectors (question_id, source_text, embedding, status) 
+             VALUES (?, ?, ?, 'ready') 
+             ON DUPLICATE KEY UPDATE embedding = VALUES(embedding), status = 'ready'`,
+            [item.question_id, item.title, JSON.stringify(emb)],
+          );
+        } catch {
+          // ignore individual error
+        }
+      }
+      vectorRows = await safeExecute(vectorsSql, []);
+    } catch {
+      // ignore
+    }
+  }
 
   const scoredMatches = [];
   for (const row of vectorRows) {
@@ -283,24 +314,24 @@ export const searchQuestionsSemanticService = async ({
           ? JSON.parse(row.embedding)
           : row.embedding;
       const score = cosineSimilarity(queryEmbedding, vector);
-      if (score >= threshold) {
+      if (score >= numericThreshold) {
         scoredMatches.push({ questionId: row.question_id, score });
       }
-    } catch (parseErr) {
+    } catch {
       // Skip invalid vector row
     }
   }
 
   scoredMatches.sort((a, b) => b.score - a.score);
-  const topMatches = scoredMatches.slice(0, k);
+  const topMatches = scoredMatches.slice(0, numericK);
 
   if (topMatches.length === 0) {
     return {
       data: [],
       meta: {
         total: 0,
-        k,
-        threshold,
+        k: numericK,
+        threshold: numericThreshold,
         query,
         questionHash: null,
       },
@@ -352,7 +383,7 @@ export const searchQuestionsSemanticService = async ({
           firstName: q.author_firstName,
           lastName: q.author_lastName,
         },
-        score: match.score,
+        score: Number(match.score.toFixed(4)),
       });
     }
   }
@@ -361,8 +392,8 @@ export const searchQuestionsSemanticService = async ({
     data,
     meta: {
       total: data.length,
-      k,
-      threshold,
+      k: numericK,
+      threshold: numericThreshold,
       query,
       questionHash: null,
     },
